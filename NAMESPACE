@@ -1,0 +1,14 @@
+export(smooth.construct.gps.smooth.spec, Predict.matrix.gps.smooth,
+       Fit4BS, MSE4BS, RandomSpl, SimStudy,
+       synBMC, FitBMC, cvBMC)
+
+importFrom(splines, splineDesign)
+importFrom(gps, PlaceKnots, SparseD, SandBar)
+importFrom(Matrix, chol, crossprod)
+importFrom(stats, sd, quantile, rnorm, predict, as.formula)
+importFrom(graphics, plot.default, lines.default, points.default)
+importFrom(mgcv, s, smooth.construct, Predict.matrix, gam, gamm)
+importFrom(parallel, makeCluster, clusterApply, stopCluster)
+
+S3method(smooth.construct, gps.smooth.spec)
+S3method(Predict.matrix, gps.smooth)

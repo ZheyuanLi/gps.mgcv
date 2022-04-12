@@ -1,0 +1,32 @@
+Package: gps.mgcv
+Version: 1.0
+Date: 2022-04-13
+Title: General P-Splines for Package 'mgcv'
+Authors@R: c(person("Zheyuan", "Li", role = c("aut", "cre"),
+                     email = "zheyuan.li@bath.edu",
+                     comment = c(ORCID = "0000-0002-7434-5947")),
+             person("Jiguo", "Cao", role = "fnd",
+                    comment = c(ORCID = "0000-0001-7417-6330")),
+             person("Ahmed", "Elhakeem", role = "dtc",
+                    comment = c(ORCID = "0000-0001-7637-6360")))
+Author: Zheyuan Li [aut, cre] (<https://orcid.org/0000-0002-7434-5947>),
+    Jiguo Cao [fnd] (<https://orcid.org/0000-0001-7417-6330>),
+    Ahmed Elhakeem [dtc] (<https://orcid.org/0000-0001-7637-6360>)
+Maintainer: Zheyuan Li <zheyuan.li@bath.edu>
+Depends: R (>= 4.0.0)
+Imports: gps (>= 1.1), mgcv (>= 1.8-40), stats, Matrix, splines, graphics, parallel
+Description: The package constructs and predicts the general P-splines of Li and Cao (2022)
+    <arXiv:2201.06808> in mgcv by defining a new 'gps' smooth class
+    (see ?gps.smooth). A general P-spline f(x) is specified as s(x, bs = 'gps', ...) in a formula
+    and estimated using mgcv's model fitting functions, namely gam (generalized additive
+    models, or GAMs), bam (GAMs for big data) and gamm (GAMs as mixed-effect models).
+    General P-splines are state-of-the-art penalized B-splines. Unlike the standard P-splines of
+    Eilers and Marx (1996) <doi:10.1214/ss/1038425655> that only make sense for uniform
+    B-splines on equidistant knots, they are properly defined for non-uniform B-splines on
+    irregularly spaced knots, thanks to their powerful general difference penalty that accounts
+    for uneven knot spacing. The package also contains functions for fitting and benchmarking
+    different penalized B-splines (see ?Fit4BS and ?SimStudy) and a case study of smoothing
+    Bone Mineral Content longitudinal data (see ?BMC).
+License: GPL-3
+NeedsCompilation: no
+URL: https://github.com/ZheyuanLi/gps.mgcv
