@@ -23,3 +23,7 @@ Install both **gps** and **gps.mgcv** from GitHub:
 devtools::install_github("ZheyuanLi/gps")
 devtools::install_github("ZheyuanLi/gps.mgcv")
 ```
+
+# Vignette
+
+R code for [Li and Cao (2022)](https://arxiv.org/abs/2201.06808) is at: https://github.com/ZheyuanLi/gps-vignettes/blob/main/gps1.pdf
