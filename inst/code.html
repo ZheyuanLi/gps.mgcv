@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Zheyuan Li (zheyuan.li@bath.edu) and Jiguo Cao (jiguo_cao@sfu.ca)" />
+
+
+<title> General P-splines for Non-Uniform B-splines (R code) </title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore"><span style="font-size:24px"> General
+P-splines for Non-Uniform B-splines (R code) </span></h1>
+<h4 class="author">Zheyuan Li (<a href="mailto:zheyuan.li@bath.edu" class="email">zheyuan.li@bath.edu</a>) and Jiguo Cao (<a href="mailto:jiguo_cao@sfu.ca" class="email">jiguo_cao@sfu.ca</a>)</h4>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#introduction" id="toc-introduction">1
+Introduction</a></li>
+<li><a href="#the-new-general-p-splines" id="toc-the-new-general-p-splines">2 The New General P-splines</a>
+<ul>
+<li><a href="#standard-p-splines" id="toc-standard-p-splines">2.1
+Standard P-splines</a></li>
+<li><a href="#introducing-general-p-splines" id="toc-introducing-general-p-splines">2.2 Introducing General
+P-splines</a></li>
+<li><a href="#connection-with-o-splines" id="toc-connection-with-o-splines">2.4 Connection with
+O-splines</a></li>
+</ul></li>
+<li><a href="#simulation-studies" id="toc-simulation-studies">3
+Simulation Studies</a></li>
+<li><a href="#real-data-examples" id="toc-real-data-examples">4 Real
+Data Examples</a>
+<ul>
+<li><a href="#bmc-longitudinal-data" id="toc-bmc-longitudinal-data">4.1
+BMC Longitudinal Data</a></li>
+<li><a href="#fossil-shell-data" id="toc-fossil-shell-data">4.2 Fossil
+Shell Data</a></li>
+</ul></li>
+<li><a href="#appendix-spline-and-b-splines" id="toc-appendix-spline-and-b-splines">Appendix: Spline and
+B-splines</a></li>
+</ul>
+</div>
+
+<p>Follow this document to reproduce all demos, computational results,
+simulation outcomes and real data analysis in the paper. You need to
+first install <strong>gps.mgcv</strong> from GitHub.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="do">## installation from GitHub</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="do">## you may need to first install &quot;remotes&quot; from CRAN</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;ZheyuanLi/gps.mgcv&quot;</span>)</span></code></pre></div>
+<p>Load required packages and define a utility function that is used
+throughout this document.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(splines)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">library</span>(mgcv)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">library</span>(gps.mgcv)</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="do">## plot a fitted penalized B-splines against observed (x, y) data and true function g(x)</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="do">## gamfit: a fitted GAM model, should only have a single s(x) term of B-splines class</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="do">## x, y: observed (x, y) data</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="do">## g: the true function g(x)</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>PlotXYFit <span class="ot">&lt;-</span> <span class="cf">function</span> (gamfit, x, y, g) {</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  <span class="do">## g must be a function</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.function</span>(g)) <span class="fu">stop</span>(<span class="st">&quot;g is not a function!&quot;</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>  <span class="do">## plot (x, y) data</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>  <span class="fu">plot</span>(x, y, <span class="at">col =</span> <span class="dv">8</span>, <span class="at">ann =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>  <span class="do">## show knot location</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">v =</span> gamfit<span class="sc">$</span>smooth[[<span class="dv">1</span>]]<span class="sc">$</span>knots, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="dv">8</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>  <span class="do">## overlay g(x)</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>  nx <span class="ot">&lt;-</span> <span class="fu">length</span>(x)</span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>  xg <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fu">min</span>(x), <span class="fu">max</span>(x), <span class="at">length =</span> nx)</span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>  <span class="fu">lines</span>(xg, <span class="fu">g</span>(xg), <span class="at">col =</span> <span class="dv">2</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>  <span class="do">## plot estimated f(x) at xg</span></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>  yh <span class="ot">&lt;-</span> <span class="fu">predict</span>(gamfit, <span class="at">newdata =</span> <span class="fu">data.frame</span>(<span class="at">x =</span> xg))</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>  <span class="fu">lines</span>(xg, yh, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>}</span></code></pre></div>
+<div id="introduction" class="section level1">
+<h1>1 Introduction</h1>
+<p>Figure 1 is produced in <a href="#bmc-longitudinal-data">4.1 BMC
+Longitudinal Data</a>.</p>
+<p></br></p>
+</div>
+<div id="the-new-general-p-splines" class="section level1">
+<h1>2 The New General P-splines</h1>
+<div id="standard-p-splines" class="section level2">
+<h2>2.1 Standard P-splines</h2>
+<p>The following code produces Figure 2.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="do">## U-shaped curve</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="cf">function</span> (x) <span class="fu">abs</span>(x) <span class="sc">^</span> <span class="dv">3</span> <span class="sc">-</span> <span class="fl">0.2</span> <span class="sc">*</span> x <span class="sc">^</span> <span class="dv">4</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="do">## number of data</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">500</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="do">## noise-to-signal ratio</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>n2s.ratio <span class="ot">&lt;-</span> <span class="fl">0.4</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="do">## x-values</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">qnorm</span>(<span class="fu">seq</span>(<span class="fu">pnorm</span>(<span class="sc">-</span><span class="dv">3</span>), <span class="fu">pnorm</span>(<span class="dv">3</span>), <span class="at">length =</span> n))</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="do">## noisy y-values</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>gx <span class="ot">&lt;-</span> <span class="fu">g</span>(x)</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2021</span>); y <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="fu">length</span>(gx), gx, n2s.ratio <span class="sc">*</span> <span class="fu">sd</span>(gx))</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="do">## number of interior knots</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="dv">50</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="do">## fit 4 types of penalized B-splines</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>fit <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">Fit4BS</span>(x, y, k, <span class="at">select =</span> <span class="fu">c</span>(<span class="st">&quot;sps&quot;</span>, <span class="st">&quot;nps&quot;</span>))</span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="fu">pdf</span>(<span class="st">&quot;fig2.pdf&quot;</span>, <span class="at">width =</span> <span class="fl">7.5</span>, <span class="at">height =</span> <span class="fl">2.5</span>)</span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="fl">1.5</span>, <span class="fl">0.5</span>))</span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="do">## uniform B-splines</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="fu">PlotXYFit</span>(fit<span class="sc">$</span>sps, x, y, g)</span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;uniform B-splines&quot;</span>)</span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="do">## non-uniform B-splines</span></span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="fu">PlotXYFit</span>(fit<span class="sc">$</span>nps, x, y, g)</span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;non-uniform B-splines&quot;</span>)</span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="do">## boxplot of MSE</span></span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a>mse <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">MSE4BS</span>(x, g, k, <span class="at">n2s.ratio =</span> n2s.ratio, <span class="at">select =</span> <span class="fu">c</span>(<span class="st">&quot;sps&quot;</span>, <span class="st">&quot;nps&quot;</span>))</span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a><span class="fu">colnames</span>(mse) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;uniform&quot;</span>, <span class="st">&quot;non-uniform&quot;</span>)</span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a><span class="fu">boxplot</span>(mse, <span class="at">main =</span> <span class="st">&quot;MSE (100 simulations)&quot;</span>)</span>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div>
+<p>The following code produces Figure 3.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">pdf</span>(<span class="st">&quot;fig3.pdf&quot;</span>, <span class="at">width =</span> <span class="dv">6</span>, <span class="at">height =</span> <span class="dv">4</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>gps.mgcv<span class="sc">::</span><span class="fu">DemoNull</span>(<span class="at">n =</span> <span class="dv">100</span>, <span class="at">k =</span> <span class="dv">10</span>, <span class="at">gps =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div>
+</div>
+<div id="introducing-general-p-splines" class="section level2">
+<h2>2.2 Introducing General P-splines</h2>
+<p>The following code computes general difference matrices of order 1 to
+3 on the example knot sequence.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="do">## general difference matrices of order 1 to 3</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>D <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">SparseD</span>(<span class="at">xt =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">4</span>), <span class="at">d =</span> <span class="dv">4</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="do">## 1st order</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>D[[<span class="dv">1</span>]]</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="do">## 2nd order</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>D[[<span class="dv">2</span>]]</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="do">## 3rd order</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>D[[<span class="dv">3</span>]]</span></code></pre></div>
+</div>
+<div id="connection-with-o-splines" class="section level2">
+<h2>2.4 Connection with O-splines</h2>
+<p>The following code computes matrix “S.bar” of order 1 to 3 on the
+example knot sequence.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>gps.mgcv<span class="sc">::</span><span class="fu">SandBar</span>(<span class="at">xt =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">4</span>), <span class="at">d =</span> <span class="dv">4</span>, <span class="at">m =</span> <span class="dv">1</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>gps.mgcv<span class="sc">::</span><span class="fu">SandBar</span>(<span class="at">xt =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">4</span>), <span class="at">d =</span> <span class="dv">4</span>, <span class="at">m =</span> <span class="dv">2</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>gps.mgcv<span class="sc">::</span><span class="fu">SandBar</span>(<span class="at">xt =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">4</span>), <span class="at">d =</span> <span class="dv">4</span>, <span class="at">m =</span> <span class="dv">3</span>)</span></code></pre></div>
+</div>
+</div>
+<div id="simulation-studies" class="section level1">
+<h1>3 Simulation Studies</h1>
+<p><strong>U-Shaped Curve Example</strong> The following code produces
+Figure 4.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="do">## n, number of data</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="do">## n2s.ratio, noise-to-signal ratio</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="do">## k, number of interior knots</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>UCurve <span class="ot">&lt;-</span> <span class="cf">function</span> (<span class="at">n =</span> <span class="dv">500</span>, <span class="at">n2s.ratio =</span> <span class="fl">0.4</span>, <span class="at">k =</span> <span class="dv">50</span>) {</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="do">## g(x)</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  g <span class="ot">&lt;-</span> <span class="cf">function</span> (x) <span class="fu">abs</span>(x) <span class="sc">^</span> <span class="dv">3</span> <span class="sc">-</span> <span class="fl">0.2</span> <span class="sc">*</span> x <span class="sc">^</span> <span class="dv">4</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="do">## x-values</span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  x <span class="ot">&lt;-</span> <span class="fu">qnorm</span>(<span class="fu">seq</span>(<span class="fu">pnorm</span>(<span class="sc">-</span><span class="dv">3</span>), <span class="fu">pnorm</span>(<span class="dv">3</span>), <span class="at">length =</span> n))</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  <span class="do">## noisy y-values</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>  gx <span class="ot">&lt;-</span> <span class="fu">g</span>(x)</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>  y <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="fu">length</span>(gx), gx, n2s.ratio <span class="sc">*</span> <span class="fu">sd</span>(gx))</span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>  <span class="do">## fit O-splines and standard/general P-splines</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>  fit <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">Fit4BS</span>(x, y, k, <span class="at">select =</span> <span class="fu">c</span>(<span class="st">&quot;os&quot;</span>, <span class="st">&quot;sps&quot;</span>, <span class="st">&quot;gps&quot;</span>))</span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>  <span class="do">## general P-splines</span></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>  <span class="fu">PlotXYFit</span>(fit<span class="sc">$</span>gps, x, y, g)</span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>  <span class="fu">title</span>(<span class="st">&quot;general P-splines&quot;</span>)</span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>  <span class="do">## boxplot of MSE</span></span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>  mse <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">MSE4BS</span>(x, g, k, <span class="at">n2s.ratio =</span> n2s.ratio, <span class="at">select =</span> <span class="fu">c</span>(<span class="st">&quot;os&quot;</span>, <span class="st">&quot;sps&quot;</span>, <span class="st">&quot;gps&quot;</span>))</span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>  <span class="fu">boxplot</span>(mse, <span class="at">main =</span> <span class="st">&quot;MSE (100 simulations)&quot;</span>)</span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>}</span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a></span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2021</span>)</span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a><span class="fu">pdf</span>(<span class="st">&quot;fig4.pdf&quot;</span>, <span class="at">width =</span> <span class="dv">8</span>, <span class="at">height =</span> <span class="dv">4</span>)</span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="fl">1.5</span>, <span class="fl">0.5</span>))</span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="fu">UCurve</span>(<span class="at">n =</span> <span class="dv">500</span>, <span class="at">n2s.ratio =</span> <span class="fl">0.4</span>, <span class="at">k =</span> <span class="dv">50</span>)</span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div>
+<p><strong>Random Curve Example</strong> The following code produces
+Figure 5.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">pdf</span>(<span class="st">&quot;fig5.pdf&quot;</span>, <span class="at">width =</span> <span class="dv">9</span>, <span class="at">height =</span> <span class="dv">3</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="fl">1.5</span>, <span class="fl">0.5</span>))</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="do">## number of data</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">500</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="do">## number of interior knots</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="dv">40</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="do">## noise-to-signal-ratio</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>n2s.ratio <span class="ot">&lt;-</span> <span class="fl">0.4</span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="do">## simulate a random spline</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2021</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>spl <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">RandomSpl</span>(n)</span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;a random spline function&quot;</span>)</span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="do">## g(x)</span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">splinefun</span>(spl<span class="sc">$</span>xg, spl<span class="sc">$</span>yg, <span class="at">method =</span> <span class="st">&quot;natural&quot;</span>)</span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a></span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="do">## x-values</span></span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a>x <span class="ot">&lt;-</span> spl<span class="sc">$</span>x</span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="do">## noisy y-values</span></span>
+<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a>gx <span class="ot">&lt;-</span> spl<span class="sc">$</span>y</span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="fu">length</span>(gx), gx, n2s.ratio <span class="sc">*</span> <span class="fu">sd</span>(gx))</span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a></span>
+<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a><span class="do">## fit O-splines and standard/general P-splines</span></span>
+<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a>fit <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">Fit4BS</span>(x, y, k, <span class="at">select =</span> <span class="fu">c</span>(<span class="st">&quot;os&quot;</span>, <span class="st">&quot;sps&quot;</span>, <span class="st">&quot;gps&quot;</span>))</span>
+<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a></span>
+<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="do">## standard P-splines</span></span>
+<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="fu">PlotXYFit</span>(fit<span class="sc">$</span>sps, x, y, g)</span>
+<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;standard P-splines&quot;</span>)</span>
+<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a><span class="do">## general P-splines</span></span>
+<span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a><span class="fu">PlotXYFit</span>(fit<span class="sc">$</span>gps, x, y, g)</span>
+<span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;general P-splines&quot;</span>)</span>
+<span id="cb8-33"><a href="#cb8-33" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div>
+<p>The following code produces Figure 6.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="do">## fit O-splines and standard/general P-splines, with different penalty order</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">Fit4BS</span>(x, y, k, <span class="at">m =</span> <span class="dv">1</span>, <span class="at">select =</span> <span class="fu">c</span>(<span class="st">&quot;os&quot;</span>, <span class="st">&quot;sps&quot;</span>, <span class="st">&quot;gps&quot;</span>))</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">Fit4BS</span>(x, y, k, <span class="at">m =</span> <span class="dv">2</span>, <span class="at">select =</span> <span class="fu">c</span>(<span class="st">&quot;os&quot;</span>, <span class="st">&quot;sps&quot;</span>, <span class="st">&quot;gps&quot;</span>))</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>fit3 <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">Fit4BS</span>(x, y, k, <span class="at">m =</span> <span class="dv">3</span>, <span class="at">select =</span> <span class="fu">c</span>(<span class="st">&quot;os&quot;</span>, <span class="st">&quot;sps&quot;</span>, <span class="st">&quot;gps&quot;</span>))</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="do">## predict fitted spline</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>yp1 <span class="ot">&lt;-</span> <span class="fu">sapply</span>(fit1[<span class="fu">c</span>(<span class="st">&quot;os&quot;</span>, <span class="st">&quot;sps&quot;</span>, <span class="st">&quot;gps&quot;</span>)], predict, <span class="at">newdata =</span> <span class="fu">data.frame</span>(<span class="at">x =</span> spl<span class="sc">$</span>xg))</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>yp2 <span class="ot">&lt;-</span> <span class="fu">sapply</span>(fit2[<span class="fu">c</span>(<span class="st">&quot;os&quot;</span>, <span class="st">&quot;sps&quot;</span>, <span class="st">&quot;gps&quot;</span>)], predict, <span class="at">newdata =</span> <span class="fu">data.frame</span>(<span class="at">x =</span> spl<span class="sc">$</span>xg))</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>yp3 <span class="ot">&lt;-</span> <span class="fu">sapply</span>(fit2[<span class="fu">c</span>(<span class="st">&quot;os&quot;</span>, <span class="st">&quot;sps&quot;</span>, <span class="st">&quot;gps&quot;</span>)], predict, <span class="at">newdata =</span> <span class="fu">data.frame</span>(<span class="at">x =</span> spl<span class="sc">$</span>xg))</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="do">## subtract g(x) from fitted values</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>dp1 <span class="ot">&lt;-</span> yp1 <span class="sc">-</span> spl<span class="sc">$</span>yg</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>dp2 <span class="ot">&lt;-</span> yp2 <span class="sc">-</span> spl<span class="sc">$</span>yg</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>dp3 <span class="ot">&lt;-</span> yp3 <span class="sc">-</span> spl<span class="sc">$</span>yg</span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>ylim1 <span class="ot">&lt;-</span> <span class="fu">range</span>(dp1, dp2, dp3)</span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="do">## assess MSE performance in 100 simulations</span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a>mse1 <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">MSE4BS</span>(x, g, k, <span class="at">m =</span> <span class="dv">1</span>, <span class="at">n2s.ratio =</span> n2s.ratio, <span class="at">select =</span> <span class="fu">c</span>(<span class="st">&quot;os&quot;</span>, <span class="st">&quot;sps&quot;</span>, <span class="st">&quot;gps&quot;</span>))</span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a>mse2 <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">MSE4BS</span>(x, g, k, <span class="at">m =</span> <span class="dv">2</span>, <span class="at">n2s.ratio =</span> n2s.ratio, <span class="at">select =</span> <span class="fu">c</span>(<span class="st">&quot;os&quot;</span>, <span class="st">&quot;sps&quot;</span>, <span class="st">&quot;gps&quot;</span>))</span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a>mse3 <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">MSE4BS</span>(x, g, k, <span class="at">m =</span> <span class="dv">3</span>, <span class="at">n2s.ratio =</span> n2s.ratio, <span class="at">select =</span> <span class="fu">c</span>(<span class="st">&quot;os&quot;</span>, <span class="st">&quot;sps&quot;</span>, <span class="st">&quot;gps&quot;</span>))</span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>ylim2 <span class="ot">&lt;-</span> <span class="fu">range</span>(mse1, mse2, mse3)</span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a></span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a><span class="fu">pdf</span>(<span class="st">&quot;fig6.pdf&quot;</span>, <span class="at">width =</span> <span class="dv">9</span>, <span class="at">height =</span> <span class="dv">6</span>)</span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="fl">1.5</span>, <span class="fl">0.5</span>))</span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a><span class="fu">matplot</span>(spl<span class="sc">$</span>xg, <span class="fu">cbind</span>(dp1[, <span class="st">&quot;os&quot;</span>], dp2[, <span class="st">&quot;os&quot;</span>], dp3[, <span class="st">&quot;os&quot;</span>]),</span>
+<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">&quot;l&quot;</span>, <span class="at">ylim =</span> ylim1, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">ann =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">&quot;topleft&quot;</span>, <span class="at">legend =</span> <span class="fu">paste0</span>(<span class="st">&quot;m = &quot;</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>), <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
+<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a>       <span class="at">cex =</span> <span class="fl">1.25</span>, <span class="at">bty =</span> <span class="st">&quot;n&quot;</span>, <span class="at">text.col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>)</span>
+<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;O-splines&quot;</span>)</span>
+<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a><span class="fu">matplot</span>(spl<span class="sc">$</span>xg, <span class="fu">cbind</span>(dp1[, <span class="st">&quot;sps&quot;</span>], dp2[, <span class="st">&quot;sps&quot;</span>], dp3[, <span class="st">&quot;sps&quot;</span>]),</span>
+<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">&quot;l&quot;</span>, <span class="at">ylim =</span> ylim1, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">ann =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">&quot;topleft&quot;</span>, <span class="at">legend =</span> <span class="fu">paste0</span>(<span class="st">&quot;m = &quot;</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>), <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
+<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a>       <span class="at">cex =</span> <span class="fl">1.25</span>, <span class="at">bty =</span> <span class="st">&quot;n&quot;</span>, <span class="at">text.col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>)</span>
+<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;standard P-splines&quot;</span>)</span>
+<span id="cb9-32"><a href="#cb9-32" tabindex="-1"></a><span class="fu">matplot</span>(spl<span class="sc">$</span>xg, <span class="fu">cbind</span>(dp1[, <span class="st">&quot;gps&quot;</span>], dp2[, <span class="st">&quot;gps&quot;</span>], dp3[, <span class="st">&quot;gps&quot;</span>]),</span>
+<span id="cb9-33"><a href="#cb9-33" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">&quot;l&quot;</span>, <span class="at">ylim =</span> ylim1, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">ann =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb9-34"><a href="#cb9-34" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">&quot;topleft&quot;</span>, <span class="at">legend =</span> <span class="fu">paste0</span>(<span class="st">&quot;m = &quot;</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>), <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
+<span id="cb9-35"><a href="#cb9-35" tabindex="-1"></a>       <span class="at">cex =</span> <span class="fl">1.25</span>, <span class="at">bty =</span> <span class="st">&quot;n&quot;</span>, <span class="at">text.col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>)</span>
+<span id="cb9-36"><a href="#cb9-36" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;general P-splines&quot;</span>)</span>
+<span id="cb9-37"><a href="#cb9-37" tabindex="-1"></a><span class="fu">boxplot</span>(mse1, <span class="at">main =</span> <span class="st">&quot;MSE (m = 1)&quot;</span>, <span class="at">ylim =</span> ylim2)</span>
+<span id="cb9-38"><a href="#cb9-38" tabindex="-1"></a><span class="fu">boxplot</span>(mse2, <span class="at">main =</span> <span class="st">&quot;MSE (m = 2)&quot;</span>, <span class="at">ylim =</span> ylim2)</span>
+<span id="cb9-39"><a href="#cb9-39" tabindex="-1"></a><span class="fu">boxplot</span>(mse3, <span class="at">main =</span> <span class="st">&quot;MSE (m = 3)&quot;</span>, <span class="at">ylim =</span> ylim2)</span>
+<span id="cb9-40"><a href="#cb9-40" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div>
+<p><strong>Random Curve Example (continued)</strong> The following code
+produces Figure 7. Simulations takes some time, so I did them using
+<code>nc = 4</code> CPU cores.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="do">## simulations with random cubic splines</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>cubic_1000_0<span class="fl">.1</span> <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">SimStudy</span>(<span class="at">n =</span> <span class="dv">1000</span>, <span class="at">degree =</span> <span class="dv">3</span>, <span class="at">n2s.ratio =</span> <span class="fl">0.1</span>, <span class="at">nc =</span> <span class="dv">4</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>cubic_1000_0<span class="fl">.5</span> <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">SimStudy</span>(<span class="at">n =</span> <span class="dv">1000</span>, <span class="at">degree =</span> <span class="dv">3</span>, <span class="at">n2s.ratio =</span> <span class="fl">0.5</span>, <span class="at">nc =</span> <span class="dv">4</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>cubic_5000_0<span class="fl">.1</span> <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">SimStudy</span>(<span class="at">n =</span> <span class="dv">5000</span>, <span class="at">degree =</span> <span class="dv">3</span>, <span class="at">n2s.ratio =</span> <span class="fl">0.1</span>, <span class="at">nc =</span> <span class="dv">4</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>cubic_5000_0<span class="fl">.5</span> <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">SimStudy</span>(<span class="at">n =</span> <span class="dv">5000</span>, <span class="at">degree =</span> <span class="dv">3</span>, <span class="at">n2s.ratio =</span> <span class="fl">0.5</span>, <span class="at">nc =</span> <span class="dv">4</span>)</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="do">## plot grouped boxplot</span></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>PlotMSE <span class="ot">&lt;-</span> <span class="cf">function</span> (mse, n, gamma) {</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>  N <span class="ot">&lt;-</span> <span class="fu">ncol</span>(mse) <span class="sc">/</span> <span class="dv">3</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>  at <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">seq_len</span>(<span class="dv">4</span> <span class="sc">*</span> N), <span class="dv">4</span>, N)[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, ]</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>  lab <span class="ot">&lt;-</span> <span class="fu">rep_len</span>(<span class="fu">c</span>(<span class="st">&quot;os&quot;</span>, <span class="st">&quot;sps&quot;</span>, <span class="st">&quot;gps&quot;</span>), <span class="dv">3</span> <span class="sc">*</span> N)</span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>  m <span class="ot">&lt;-</span> <span class="fu">sprintf</span>(<span class="st">&quot;m = %d&quot;</span>, <span class="dv">1</span><span class="sc">:</span>N)</span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a>  <span class="fu">boxplot</span>(mse, <span class="at">at =</span> at, <span class="at">names =</span> lab, <span class="at">xlim =</span> <span class="fu">extendrange</span>(at, <span class="at">f =</span> <span class="fl">0.01</span>))</span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a>  <span class="fu">mtext</span>(m, <span class="at">side =</span> <span class="dv">1</span>, <span class="at">at =</span> <span class="fu">colMeans</span>(at), <span class="at">line =</span> <span class="fl">2.5</span>)</span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a>  <span class="fu">legend</span>(<span class="st">&quot;top&quot;</span>, <span class="at">legend =</span> <span class="fu">sprintf</span>(<span class="st">&quot;n = %d, gamma = %.1f&quot;</span>, n, gamma), <span class="at">bty =</span> <span class="st">&quot;n&quot;</span>, <span class="at">cex =</span> <span class="fl">1.5</span>)</span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a>}</span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a></span>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a><span class="fu">pdf</span>(<span class="st">&quot;fig7.pdf&quot;</span>, <span class="at">width =</span> <span class="dv">9</span>, <span class="at">height =</span> <span class="dv">6</span>)</span>
+<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="fl">3.5</span>, <span class="fl">2.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>))</span>
+<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a><span class="fu">PlotMSE</span>(cubic_1000_0<span class="fl">.1</span>, <span class="dv">1000</span>, <span class="fl">0.1</span>)</span>
+<span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a><span class="fu">PlotMSE</span>(cubic_1000_0<span class="fl">.5</span>, <span class="dv">1000</span>, <span class="fl">0.5</span>)</span>
+<span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a><span class="fu">PlotMSE</span>(cubic_5000_0<span class="fl">.1</span>, <span class="dv">5000</span>, <span class="fl">0.1</span>)</span>
+<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a><span class="fu">PlotMSE</span>(cubic_5000_0<span class="fl">.5</span>, <span class="dv">5000</span>, <span class="fl">0.5</span>)</span>
+<span id="cb10-24"><a href="#cb10-24" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div>
+<p><strong>Inhomogeneously Smooth Curve Example</strong> The following
+code produces Figure 8.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="do">## n, number of data</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="do">## n2s.ratio, noise-to-signal ratio</span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="do">## k, number of interior knots</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>AdaptiveCurve <span class="ot">&lt;-</span> <span class="cf">function</span> (<span class="at">n =</span> <span class="dv">500</span>, <span class="at">n2s.ratio =</span> <span class="fl">0.25</span>, <span class="at">k =</span> <span class="dv">50</span>) {</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="do">## g(x)</span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>  g <span class="ot">&lt;-</span> <span class="cf">function</span> (x) x <span class="sc">+</span> <span class="fu">sin</span>(<span class="dv">10</span> <span class="sc">*</span> pi <span class="sc">*</span> x <span class="sc">^</span> <span class="dv">5</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>  <span class="do">## x-values</span></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>  x1 <span class="ot">&lt;-</span> <span class="fu">seq.int</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> k)[<span class="dv">2</span><span class="sc">:</span><span class="dv">49</span>]</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>  x2 <span class="ot">&lt;-</span> <span class="fu">seq.int</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> n <span class="sc">-</span> <span class="fu">length</span>(x1)) <span class="sc">^</span> (<span class="dv">1</span> <span class="sc">/</span> <span class="dv">5</span>)</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>  x <span class="ot">&lt;-</span> <span class="fu">sort</span>(<span class="fu">c</span>(x1, x2))</span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>  <span class="do">## noisy y-values</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>  gx <span class="ot">&lt;-</span> <span class="fu">g</span>(x)</span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>  y <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="fu">length</span>(gx), gx, n2s.ratio <span class="sc">*</span> <span class="fu">sd</span>(gx))</span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a>  <span class="do">## fit O-splines and standard/general P-splines</span></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a>  fit <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">Fit4BS</span>(x, y, k, <span class="at">select =</span> <span class="fu">c</span>(<span class="st">&quot;os&quot;</span>, <span class="st">&quot;sps&quot;</span>, <span class="st">&quot;gps&quot;</span>))</span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a>  <span class="do">## standard P-splines</span></span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a>  <span class="fu">PlotXYFit</span>(fit<span class="sc">$</span>sps, x, y, g)</span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a>  <span class="fu">title</span>(<span class="st">&quot;standard P-splines&quot;</span>)</span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a>  <span class="do">## general P-splines</span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a>  <span class="fu">PlotXYFit</span>(fit<span class="sc">$</span>gps, x, y, g)</span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a>  <span class="fu">title</span>(<span class="st">&quot;general P-splines&quot;</span>)</span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a>  <span class="do">## boxplot of MSE</span></span>
+<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a>  mse <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">MSE4BS</span>(x, g, k, <span class="at">n2s.ratio =</span> n2s.ratio, <span class="at">select =</span> <span class="fu">c</span>(<span class="st">&quot;os&quot;</span>, <span class="st">&quot;sps&quot;</span>, <span class="st">&quot;gps&quot;</span>))</span>
+<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a>  <span class="fu">boxplot</span>(mse, <span class="at">main =</span> <span class="st">&quot;MSE (100 simulations)&quot;</span>)</span>
+<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a>}</span>
+<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a></span>
+<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2021</span>)</span>
+<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a><span class="fu">pdf</span>(<span class="st">&quot;fig8.pdf&quot;</span>, <span class="at">width =</span> <span class="dv">9</span>, <span class="at">height =</span> <span class="dv">3</span>)</span>
+<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="fl">1.5</span>, <span class="fl">0.5</span>))</span>
+<span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a><span class="fu">AdaptiveCurve</span>(<span class="at">n =</span> <span class="dv">1000</span>, <span class="at">n2s.ratio =</span> <span class="fl">0.25</span>, <span class="at">k =</span> <span class="dv">50</span>)</span>
+<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div>
+</div>
+<div id="real-data-examples" class="section level1">
+<h1>4 Real Data Examples</h1>
+<div id="bmc-longitudinal-data" class="section level2">
+<h2>4.1 BMC Longitudinal Data</h2>
+<p>The paper only takes male group for demonstration.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>BMC <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">synBMC</span>(<span class="at">gender =</span> <span class="st">&quot;male&quot;</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="fu">head</span>(BMC)</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="do">## number of subjects</span></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="fu">nlevels</span>(BMC<span class="sc">$</span>id)</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="do">## split this data set by subject</span></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>BMC.id <span class="ot">&lt;-</span> <span class="fu">split</span>(BMC[<span class="sc">-</span><span class="dv">1</span>], BMC<span class="sc">$</span>id)</span></code></pre></div>
+<p>The following code produces Figure 9.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">pdf</span>(<span class="st">&quot;fig9.pdf&quot;</span>, <span class="at">width =</span> <span class="fl">7.5</span>, <span class="at">height =</span> <span class="fl">2.5</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="fl">1.5</span>, <span class="fl">0.5</span>))</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="do">## (A) BMC data (bmc ~ age)</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="fu">with</span>(BMC, <span class="fu">plot</span>(age, bmc, <span class="at">type =</span> <span class="st">&quot;n&quot;</span>, <span class="at">ann =</span> <span class="cn">FALSE</span>))</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>N) <span class="fu">with</span>(BMC.id[[i]], <span class="fu">lines</span>(age, bmc, <span class="at">col =</span> i))</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;(A) bmc ~ age&quot;</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="do">## (B) BMC data (log(bmc) ~ age)</span></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a><span class="fu">with</span>(BMC, <span class="fu">plot</span>(age, log.bmc, <span class="at">type =</span> <span class="st">&quot;n&quot;</span>, <span class="at">ann =</span> <span class="cn">FALSE</span>))</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>N) <span class="fu">with</span>(BMC.id[[i]], <span class="fu">lines</span>(age, log.bmc, <span class="at">col =</span> i))</span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;(B) log(bmc) ~ age&quot;</span>)</span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="do">## (C) distribution of age</span></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="fu">hist</span>(BMC<span class="sc">$</span>age, <span class="at">breaks =</span> <span class="dv">15</span>, <span class="at">ann =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;(C) distribution of age&quot;</span>)</span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div>
+<p><strong>gps.mgcv</strong> provides a function <code>FitBMC</code> for
+fitting standard/general P-splines to BMC data. You may read its source
+code to see how an additive mixed model is specified using factor smooth
+(“fs”) and estimated via <code>mgcv::gamm</code>.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="do">## fit BMC using 10 and 20 B-splines</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="fu">system.time</span>(gps<span class="fl">.10</span> <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">FitBMC</span>(<span class="at">gender =</span> <span class="st">&quot;male&quot;</span>, <span class="at">p =</span> <span class="dv">10</span>, <span class="at">gps =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>gam)</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="fu">system.time</span>(sps<span class="fl">.10</span> <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">FitBMC</span>(<span class="at">gender =</span> <span class="st">&quot;male&quot;</span>, <span class="at">p =</span> <span class="dv">10</span>, <span class="at">gps =</span> <span class="cn">FALSE</span>)<span class="sc">$</span>gam)</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="fu">system.time</span>(gps<span class="fl">.20</span> <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">FitBMC</span>(<span class="at">gender =</span> <span class="st">&quot;male&quot;</span>, <span class="at">p =</span> <span class="dv">20</span>, <span class="at">gps =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>gam)</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="fu">system.time</span>(sps<span class="fl">.20</span> <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">FitBMC</span>(<span class="at">gender =</span> <span class="st">&quot;male&quot;</span>, <span class="at">p =</span> <span class="dv">20</span>, <span class="at">gps =</span> <span class="cn">FALSE</span>)<span class="sc">$</span>gam)</span></code></pre></div>
+<p>(On my laptop, fitting models with <code>p = 10</code> and
+<code>p = 20</code> takes 14 and 90 seconds, respectively. Using
+<code>p = 30</code> takes even longer time: 290 seconds.)</p>
+<p>Predict population and subject trajectories.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="do">## a grid of age values to make prediction</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>age <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fu">min</span>(BMC<span class="sc">$</span>age), <span class="fu">max</span>(BMC<span class="sc">$</span>age), <span class="at">length =</span> <span class="dv">100</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="do">## newdata</span></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>newdat1 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">age =</span> <span class="fu">rep.int</span>(age, N),</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>                      <span class="at">id =</span> <span class="fu">rep</span>(<span class="fu">levels</span>(BMC<span class="sc">$</span>id), <span class="at">each =</span> <span class="fu">length</span>(age)))</span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>newdat2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">age =</span> age, <span class="at">id =</span> <span class="st">&quot;M001&quot;</span>)</span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a><span class="do">## predict all subject BMC trajectories</span></span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a>sub.gps<span class="fl">.10</span> <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">exp</span>(<span class="fu">predict</span>(gps<span class="fl">.10</span>, newdat1)), <span class="at">nrow =</span> <span class="fu">length</span>(age))</span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a>sub.sps<span class="fl">.10</span> <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">exp</span>(<span class="fu">predict</span>(sps<span class="fl">.10</span>, newdat1)), <span class="at">nrow =</span> <span class="fu">length</span>(age))</span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a>sub.gps<span class="fl">.20</span> <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">exp</span>(<span class="fu">predict</span>(gps<span class="fl">.20</span>, newdat1)), <span class="at">nrow =</span> <span class="fu">length</span>(age))</span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a>sub.sps<span class="fl">.20</span> <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">exp</span>(<span class="fu">predict</span>(sps<span class="fl">.20</span>, newdat1)), <span class="at">nrow =</span> <span class="fu">length</span>(age))</span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a></span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a><span class="do">## predict population BMC trajectory</span></span>
+<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a>pop.gps<span class="fl">.10</span> <span class="ot">&lt;-</span> <span class="fu">predict</span>(gps<span class="fl">.10</span>, newdat2, <span class="at">type =</span> <span class="st">&quot;terms&quot;</span>, <span class="at">terms =</span> <span class="st">&quot;s(age)&quot;</span>)</span>
+<span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a>pop.sps<span class="fl">.10</span> <span class="ot">&lt;-</span> <span class="fu">predict</span>(sps<span class="fl">.10</span>, newdat2, <span class="at">type =</span> <span class="st">&quot;terms&quot;</span>, <span class="at">terms =</span> <span class="st">&quot;s(age)&quot;</span>)</span>
+<span id="cb15-17"><a href="#cb15-17" tabindex="-1"></a>pop.gps<span class="fl">.20</span> <span class="ot">&lt;-</span> <span class="fu">predict</span>(gps<span class="fl">.20</span>, newdat2, <span class="at">type =</span> <span class="st">&quot;terms&quot;</span>, <span class="at">terms =</span> <span class="st">&quot;s(age)&quot;</span>)</span>
+<span id="cb15-18"><a href="#cb15-18" tabindex="-1"></a>pop.sps<span class="fl">.20</span> <span class="ot">&lt;-</span> <span class="fu">predict</span>(sps<span class="fl">.20</span>, newdat2, <span class="at">type =</span> <span class="st">&quot;terms&quot;</span>, <span class="at">terms =</span> <span class="st">&quot;s(age)&quot;</span>)</span>
+<span id="cb15-19"><a href="#cb15-19" tabindex="-1"></a>pop.gps<span class="fl">.10</span> <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">as.numeric</span>(pop.gps<span class="fl">.10</span>) <span class="sc">+</span> <span class="fu">attr</span>(pop.gps<span class="fl">.10</span>, <span class="st">&quot;constant&quot;</span>))</span>
+<span id="cb15-20"><a href="#cb15-20" tabindex="-1"></a>pop.sps<span class="fl">.10</span> <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">as.numeric</span>(pop.sps<span class="fl">.10</span>) <span class="sc">+</span> <span class="fu">attr</span>(pop.sps<span class="fl">.10</span>, <span class="st">&quot;constant&quot;</span>))</span>
+<span id="cb15-21"><a href="#cb15-21" tabindex="-1"></a>pop.gps<span class="fl">.20</span> <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">as.numeric</span>(pop.gps<span class="fl">.20</span>) <span class="sc">+</span> <span class="fu">attr</span>(pop.gps<span class="fl">.20</span>, <span class="st">&quot;constant&quot;</span>))</span>
+<span id="cb15-22"><a href="#cb15-22" tabindex="-1"></a>pop.sps<span class="fl">.20</span> <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">as.numeric</span>(pop.sps<span class="fl">.20</span>) <span class="sc">+</span> <span class="fu">attr</span>(pop.sps<span class="fl">.20</span>, <span class="st">&quot;constant&quot;</span>))</span>
+<span id="cb15-23"><a href="#cb15-23" tabindex="-1"></a></span>
+<span id="cb15-24"><a href="#cb15-24" tabindex="-1"></a><span class="do">## extract knots</span></span>
+<span id="cb15-25"><a href="#cb15-25" tabindex="-1"></a>knots.gps<span class="fl">.10</span> <span class="ot">&lt;-</span> gps<span class="fl">.10</span><span class="sc">$</span>smooth[[<span class="dv">1</span>]]<span class="sc">$</span>knots</span>
+<span id="cb15-26"><a href="#cb15-26" tabindex="-1"></a>knots.sps<span class="fl">.10</span> <span class="ot">&lt;-</span> sps<span class="fl">.10</span><span class="sc">$</span>smooth[[<span class="dv">1</span>]]<span class="sc">$</span>knots</span>
+<span id="cb15-27"><a href="#cb15-27" tabindex="-1"></a>knots.gps<span class="fl">.20</span> <span class="ot">&lt;-</span> gps<span class="fl">.20</span><span class="sc">$</span>smooth[[<span class="dv">1</span>]]<span class="sc">$</span>knots</span>
+<span id="cb15-28"><a href="#cb15-28" tabindex="-1"></a>knots.sps<span class="fl">.20</span> <span class="ot">&lt;-</span> sps<span class="fl">.20</span><span class="sc">$</span>smooth[[<span class="dv">1</span>]]<span class="sc">$</span>knots</span></code></pre></div>
+<p>The following code produces Figure 10.</p>
+<!--
+```{.r}
+save(BMC.id, age,
+     pop.gps.10, pop.sps.10, sub.gps.10, sub.sps.10, knots.gps.10, knots.sps.10,
+     pop.gps.20, pop.sps.20, sub.gps.20, sub.sps.20, knots.gps.20, knots.sps.20,
+     file = "trajectories.RData")
+
+load("trajectories.RData")
+
+## select ID for plotting
+selectID <- function (BMC.id, age, pop.gps, pop.sps, sub.gps, sub.sps) {
+  ## number of grid points
+  ng <- length(age)
+  ## number of subjects
+  N <- ncol(sub.gps)
+  ## squared 2nd derivatives
+  sub.gps.wiggliness <- diff.default(sub.gps, differences = 2) ^ 2
+  sub.sps.wiggliness <- diff.default(sub.sps, differences = 2) ^ 2
+  ## integrated squared 2nd derivatives (from a cutoff age to max age)
+  rev <- seq(ng - 2, 1)
+  sub.gps.wiggliness <- matrixStats::colCumsums(sub.gps.wiggliness[rev, ])[rev, ]
+  sub.sps.wiggliness <- matrixStats::colCumsums(sub.sps.wiggliness[rev, ])[rev, ]
+  ## choose the smallest cutoff age such that sps is wigglier than gps for all ID
+  cutoff <- which(rowSums(sub.gps.wiggliness < sub.sps.wiggliness) == N)[1L]
+  age.cutoff <- age[cutoff]
+  tail <- seq(cutoff, ng)
+  ## wiggliness of the tail
+  sub.gps.wiggliness <- sub.gps.wiggliness[cutoff, ]
+  sub.sps.wiggliness <- sub.sps.wiggliness[cutoff, ]
+  # all(sub.gps.wiggliness < sub.sps.wiggliness)  ## verification
+  ## select ID whose gps tail is far apart from population gps tail
+  gap <- (max(pop.gps) - min(pop.gps)) * 0.1
+  above <- which(colMeans(sub.gps[tail, ] > pop.gps[tail] + gap) == 1)
+  below <- which(colMeans(sub.gps[tail, ] < pop.gps[tail] - gap) == 1)
+  ## ID whose sps tail is much wigglier than gps tail comes first
+  wiggliness.ratio <- sub.sps.wiggliness / sub.gps.wiggliness
+  above <- above[order(wiggliness.ratio[above], decreasing = TRUE)]
+  below <- below[order(wiggliness.ratio[below], decreasing = TRUE)]
+  # wiggliness.ratio[above]  ## verification
+  # wiggliness.ratio[below]  ## verification
+  ## finally, remove ID that does not have data on the tail
+  age.id <- lapply(BMC.id, "[[", "age")
+  above <- above[unlist(lapply(age.id[above], max), use.names = FALSE) > age.cutoff]
+  below <- below[unlist(lapply(age.id[below], max), use.names = FALSE) > age.cutoff]
+  ## return subject ID
+  list(above = above, below = below)
+}
+
+ID <- selectID(BMC.id, age, pop.gps.10, pop.sps.10, sub.gps.10, sub.sps.10)
+
+## function to plot a predicted subject trajectory
+PlotID <- function (id, BMC.id, age, pop.gps, pop.sps, sub.gps, sub.sps) {
+  dat <- BMC.id[[id]]
+  xlim <- range(age)
+  bmc.gps <- sub.gps[, id]
+  bmc.sps <- sub.sps[, id]
+  ylim <- range(dat$bmc, bmc.gps, bmc.sps, pop.gps, pop.sps)
+  plot(dat$age, dat$bmc, col = 8, pch = 19, cex = 1.5, xlim = xlim, ylim = ylim, ann = FALSE)
+  matlines(age, cbind(pop.gps, pop.sps), lwd = 2, lty = 1:2, col = 1)
+  matlines(age, cbind(bmc.gps, bmc.sps), lwd = 2, lty = 1:2, col = 1)
+}
+
+pdf("above.pdf", width = 6, height = 6)
+par(mfrow = c(2, 2), mar = c(2, 2, 1.5, 0.5))
+for (i in ID$above) {
+  PlotID(i, BMC.id, age, pop.gps.10, pop.sps.10, sub.gps.10, sub.sps.10)
+  title(i)
+}
+dev.off()
+
+pdf("below.pdf", width = 6, height = 6)
+par(mfrow = c(2, 2), mar = c(2, 2, 1.5, 0.5))
+for (i in ID$below) {
+  PlotID(i, BMC.id, age, pop.gps.10, pop.sps.10, sub.gps.10, sub.sps.10)
+  title(i)
+}
+dev.off()
+```
+-->
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>PlotID <span class="ot">&lt;-</span> <span class="cf">function</span> (id1, id2, pop.gps, pop.sps, sub.gps, sub.sps,</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>                    knots.gps, knots.sps, ylim) {</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>  dat1 <span class="ot">&lt;-</span> BMC.id[[id1]]</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>  gps1 <span class="ot">&lt;-</span> sub.gps[, id1]</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>  sps1 <span class="ot">&lt;-</span> sub.sps[, id1]</span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>  dat2 <span class="ot">&lt;-</span> BMC.id[[id2]]</span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>  gps2 <span class="ot">&lt;-</span> sub.gps[, id2]</span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a>  sps2 <span class="ot">&lt;-</span> sub.sps[, id2]</span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a>  <span class="fu">matplot</span>(age, <span class="fu">cbind</span>(pop.gps, pop.sps), <span class="at">type =</span> <span class="st">&quot;l&quot;</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="dv">8</span>,</span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a>          <span class="at">ann =</span> <span class="cn">FALSE</span>, <span class="at">ylim =</span> ylim, <span class="at">xaxt =</span> <span class="st">&quot;n&quot;</span>, <span class="at">yaxt =</span> <span class="st">&quot;n&quot;</span>)</span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a>  <span class="fu">points</span>(dat1<span class="sc">$</span>age, dat1<span class="sc">$</span>bmc, <span class="at">col =</span> <span class="dv">8</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">cex =</span> <span class="dv">2</span>)</span>
+<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a>  <span class="fu">matlines</span>(age, <span class="fu">cbind</span>(gps1, sps1), <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="dv">1</span>)</span>
+<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a>  <span class="fu">points</span>(dat2<span class="sc">$</span>age, dat2<span class="sc">$</span>bmc, <span class="at">col =</span> <span class="dv">8</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">cex =</span> <span class="dv">2</span>)</span>
+<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a>  <span class="fu">matlines</span>(age, <span class="fu">cbind</span>(gps2, sps2), <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="dv">1</span>)</span>
+<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a>  <span class="fu">rug</span>(knots.gps, <span class="at">ticksize =</span> <span class="fl">0.02</span>, <span class="at">side =</span> <span class="dv">1</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb16-16"><a href="#cb16-16" tabindex="-1"></a>  <span class="fu">rug</span>(knots.sps, <span class="at">ticksize =</span> <span class="fl">0.02</span>, <span class="at">side =</span> <span class="dv">3</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb16-17"><a href="#cb16-17" tabindex="-1"></a>}</span>
+<span id="cb16-18"><a href="#cb16-18" tabindex="-1"></a></span>
+<span id="cb16-19"><a href="#cb16-19" tabindex="-1"></a><span class="do">## get domain knots from full knots</span></span>
+<span id="cb16-20"><a href="#cb16-20" tabindex="-1"></a>domain.knots.gps<span class="fl">.10</span> <span class="ot">&lt;-</span> knots.gps<span class="fl">.10</span>[<span class="dv">4</span><span class="sc">:</span><span class="dv">11</span>]</span>
+<span id="cb16-21"><a href="#cb16-21" tabindex="-1"></a>domain.knots.sps<span class="fl">.10</span> <span class="ot">&lt;-</span> knots.sps<span class="fl">.10</span>[<span class="dv">4</span><span class="sc">:</span><span class="dv">11</span>]</span>
+<span id="cb16-22"><a href="#cb16-22" tabindex="-1"></a>domain.knots.gps<span class="fl">.20</span> <span class="ot">&lt;-</span> knots.gps<span class="fl">.20</span>[<span class="dv">4</span><span class="sc">:</span><span class="dv">21</span>]</span>
+<span id="cb16-23"><a href="#cb16-23" tabindex="-1"></a>domain.knots.sps<span class="fl">.20</span> <span class="ot">&lt;-</span> knots.sps<span class="fl">.20</span>[<span class="dv">4</span><span class="sc">:</span><span class="dv">21</span>]</span>
+<span id="cb16-24"><a href="#cb16-24" tabindex="-1"></a></span>
+<span id="cb16-25"><a href="#cb16-25" tabindex="-1"></a><span class="fu">pdf</span>(<span class="st">&quot;fig10.pdf&quot;</span>, <span class="at">width =</span> <span class="dv">9</span>, <span class="at">height =</span> <span class="dv">6</span>)</span>
+<span id="cb16-26"><a href="#cb16-26" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="fl">1.5</span>, <span class="dv">0</span>), <span class="at">oma =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="dv">2</span>, <span class="dv">0</span>, <span class="fl">0.5</span>))</span>
+<span id="cb16-27"><a href="#cb16-27" tabindex="-1"></a><span class="do">## p = 10</span></span>
+<span id="cb16-28"><a href="#cb16-28" tabindex="-1"></a>ylim <span class="ot">&lt;-</span> <span class="fu">range</span>(sub.sps<span class="fl">.10</span>[, <span class="fu">c</span>(<span class="dv">27</span>, <span class="dv">41</span>, <span class="dv">63</span>, <span class="dv">47</span>, <span class="dv">66</span>, <span class="dv">8</span>)])</span>
+<span id="cb16-29"><a href="#cb16-29" tabindex="-1"></a><span class="fu">PlotID</span>(<span class="dv">27</span>, <span class="dv">47</span>, pop.gps<span class="fl">.10</span>, pop.sps<span class="fl">.10</span>, sub.gps<span class="fl">.10</span>, sub.sps<span class="fl">.10</span>,</span>
+<span id="cb16-30"><a href="#cb16-30" tabindex="-1"></a>       domain.knots.gps<span class="fl">.10</span>, domain.knots.sps<span class="fl">.10</span>, ylim)</span>
+<span id="cb16-31"><a href="#cb16-31" tabindex="-1"></a><span class="fu">axis</span>(<span class="at">side =</span> <span class="dv">2</span>)</span>
+<span id="cb16-32"><a href="#cb16-32" tabindex="-1"></a><span class="fu">PlotID</span>(<span class="dv">41</span>, <span class="dv">66</span>, pop.gps<span class="fl">.10</span>, pop.sps<span class="fl">.10</span>, sub.gps<span class="fl">.10</span>, sub.sps<span class="fl">.10</span>,</span>
+<span id="cb16-33"><a href="#cb16-33" tabindex="-1"></a>       domain.knots.gps<span class="fl">.10</span>, domain.knots.sps<span class="fl">.10</span>, ylim)</span>
+<span id="cb16-34"><a href="#cb16-34" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;10 B-splines&quot;</span>)</span>
+<span id="cb16-35"><a href="#cb16-35" tabindex="-1"></a><span class="fu">PlotID</span>(<span class="dv">63</span>,  <span class="dv">8</span>, pop.gps<span class="fl">.10</span>, pop.sps<span class="fl">.10</span>, sub.gps<span class="fl">.10</span>, sub.sps<span class="fl">.10</span>,</span>
+<span id="cb16-36"><a href="#cb16-36" tabindex="-1"></a>       domain.knots.gps<span class="fl">.10</span>, domain.knots.sps<span class="fl">.10</span>, ylim)</span>
+<span id="cb16-37"><a href="#cb16-37" tabindex="-1"></a><span class="do">## p = 20</span></span>
+<span id="cb16-38"><a href="#cb16-38" tabindex="-1"></a>ylim <span class="ot">&lt;-</span> <span class="fu">range</span>(sub.sps<span class="fl">.20</span>[, <span class="fu">c</span>(<span class="dv">17</span>, <span class="dv">41</span>, <span class="dv">63</span>, <span class="dv">84</span>, <span class="dv">66</span>, <span class="dv">8</span>)])</span>
+<span id="cb16-39"><a href="#cb16-39" tabindex="-1"></a><span class="fu">PlotID</span>(<span class="dv">27</span>, <span class="dv">47</span>, pop.gps<span class="fl">.20</span>, pop.sps<span class="fl">.20</span>, sub.gps<span class="fl">.20</span>, sub.sps<span class="fl">.20</span>,</span>
+<span id="cb16-40"><a href="#cb16-40" tabindex="-1"></a>       domain.knots.gps<span class="fl">.20</span>, domain.knots.sps<span class="fl">.20</span>, ylim)</span>
+<span id="cb16-41"><a href="#cb16-41" tabindex="-1"></a><span class="fu">axis</span>(<span class="at">side =</span> <span class="dv">2</span>)</span>
+<span id="cb16-42"><a href="#cb16-42" tabindex="-1"></a><span class="fu">PlotID</span>(<span class="dv">41</span>, <span class="dv">66</span>, pop.gps<span class="fl">.20</span>, pop.sps<span class="fl">.20</span>, sub.gps<span class="fl">.20</span>, sub.sps<span class="fl">.20</span>,</span>
+<span id="cb16-43"><a href="#cb16-43" tabindex="-1"></a>       domain.knots.gps<span class="fl">.20</span>, domain.knots.sps<span class="fl">.20</span>, ylim)</span>
+<span id="cb16-44"><a href="#cb16-44" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;20 B-splines&quot;</span>)</span>
+<span id="cb16-45"><a href="#cb16-45" tabindex="-1"></a><span class="fu">PlotID</span>(<span class="dv">63</span>,  <span class="dv">8</span>, pop.gps<span class="fl">.20</span>, pop.sps<span class="fl">.20</span>, sub.gps<span class="fl">.20</span>, sub.sps<span class="fl">.20</span>,</span>
+<span id="cb16-46"><a href="#cb16-46" tabindex="-1"></a>       domain.knots.gps<span class="fl">.20</span>, domain.knots.sps<span class="fl">.20</span>, ylim)</span>
+<span id="cb16-47"><a href="#cb16-47" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div>
+<p>The following code produces Figure 11. Cross-validation is extremely
+time-consuming! I did them on a cluster using <code>nc = 25</code> CPU
+cores.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="do">## run cross-validation</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>cv.gps <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">cvBMC</span>(<span class="at">gender =</span> <span class="st">&quot;male&quot;</span>, <span class="at">gps =</span> <span class="cn">TRUE</span>, <span class="at">nc =</span> <span class="dv">25</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>cv.sps <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">cvBMC</span>(<span class="at">gender =</span> <span class="st">&quot;male&quot;</span>, <span class="at">gps =</span> <span class="cn">FALSE</span>, <span class="at">nc =</span> <span class="dv">25</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a><span class="do">## for BMC data, &quot;gps&quot; is more effective that &quot;ps&quot;</span></span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a><span class="fu">pdf</span>(<span class="st">&quot;fig11.pdf&quot;</span>, <span class="at">width =</span> <span class="dv">6</span>, <span class="at">height =</span> <span class="dv">4</span>)</span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>))</span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a><span class="fu">matplot</span>(<span class="dv">5</span><span class="sc">:</span><span class="dv">20</span>, <span class="fu">cbind</span>(cv.gps, cv.sps), <span class="at">type =</span> <span class="st">&quot;l&quot;</span>, <span class="at">ann =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a>        <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>), <span class="at">col =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="at">each =</span> <span class="dv">3</span>))</span>
+<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a><span class="fu">mtext</span>(<span class="st">&quot;number of B-splines (p)&quot;</span>, <span class="at">side =</span> <span class="dv">1</span>, <span class="at">line =</span> <span class="dv">2</span>)</span>
+<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a><span class="fu">mtext</span>(<span class="st">&quot;CV score&quot;</span>, <span class="at">side =</span> <span class="dv">2</span>, <span class="at">line =</span> <span class="dv">2</span>)</span>
+<span id="cb17-12"><a href="#cb17-12" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div>
+<p>The following code produces Figure 1.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="fu">pdf</span>(<span class="st">&quot;fig1.pdf&quot;</span>, <span class="at">width =</span> <span class="dv">8</span>, <span class="at">height =</span> <span class="dv">4</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="fl">1.5</span>, <span class="fl">0.5</span>))</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="do">## a common ylim for the next 2 plots</span></span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>ylim <span class="ot">&lt;-</span> <span class="fu">range</span>(sub.sps<span class="fl">.10</span>[, <span class="fu">c</span>(<span class="dv">41</span>, <span class="dv">66</span>)])</span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a><span class="do">## standard P-splines, population trajectory and subject 41, 66</span></span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a><span class="fu">plot</span>(age, pop.sps<span class="fl">.10</span>, <span class="at">type =</span> <span class="st">&quot;n&quot;</span>, <span class="at">ylim =</span> ylim, <span class="at">ann =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> domain.knots.sps<span class="fl">.10</span>, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="dv">8</span>)</span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a><span class="fu">lines</span>(age, pop.sps<span class="fl">.10</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a><span class="fu">with</span>(BMC.id[[<span class="dv">41</span>]], <span class="fu">points</span>(age, bmc, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">cex =</span> <span class="fl">1.5</span>, <span class="at">col =</span> <span class="dv">8</span>))</span>
+<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a><span class="fu">with</span>(BMC.id[[<span class="dv">66</span>]], <span class="fu">points</span>(age, bmc, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">cex =</span> <span class="fl">1.5</span>, <span class="at">col =</span> <span class="dv">8</span>))</span>
+<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a><span class="fu">lines</span>(age, sub.sps<span class="fl">.10</span>[, <span class="dv">41</span>], <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a><span class="fu">lines</span>(age, sub.sps<span class="fl">.10</span>[, <span class="dv">66</span>], <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;P-splines&quot;</span>)</span>
+<span id="cb18-14"><a href="#cb18-14" tabindex="-1"></a>x <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">MakeGrid</span>(domain.knots.sps<span class="fl">.10</span>, <span class="dv">21</span>)</span>
+<span id="cb18-15"><a href="#cb18-15" tabindex="-1"></a>B <span class="ot">&lt;-</span> splines<span class="sc">::</span><span class="fu">splineDesign</span>(knots.sps<span class="fl">.10</span>, x)</span>
+<span id="cb18-16"><a href="#cb18-16" tabindex="-1"></a>B[B <span class="sc">==</span> <span class="dv">0</span>] <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb18-17"><a href="#cb18-17" tabindex="-1"></a>Bshift <span class="ot">&lt;-</span> ylim[<span class="dv">1</span>] <span class="sc">+</span> (ylim[<span class="dv">1</span>] <span class="sc">*</span> <span class="fl">0.8</span> <span class="sc">+</span> ylim[<span class="dv">2</span>] <span class="sc">*</span> <span class="fl">0.2</span>) <span class="sc">*</span> B</span>
+<span id="cb18-18"><a href="#cb18-18" tabindex="-1"></a><span class="fu">matlines</span>(x, Bshift, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="at">each =</span> <span class="dv">5</span>), <span class="at">col =</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">6</span>)</span>
+<span id="cb18-19"><a href="#cb18-19" tabindex="-1"></a><span class="do">## general P-splines, population trajectory and subject 41, 66</span></span>
+<span id="cb18-20"><a href="#cb18-20" tabindex="-1"></a><span class="fu">plot</span>(age, pop.gps<span class="fl">.10</span>, <span class="at">type =</span> <span class="st">&quot;n&quot;</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">ylim =</span> ylim, <span class="at">ann =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb18-21"><a href="#cb18-21" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> domain.knots.gps<span class="fl">.10</span>, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="dv">8</span>)</span>
+<span id="cb18-22"><a href="#cb18-22" tabindex="-1"></a><span class="fu">lines</span>(age, pop.gps<span class="fl">.10</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb18-23"><a href="#cb18-23" tabindex="-1"></a><span class="fu">with</span>(BMC.id[[<span class="dv">41</span>]], <span class="fu">points</span>(age, bmc, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">cex =</span> <span class="fl">1.5</span>, <span class="at">col =</span> <span class="dv">8</span>))</span>
+<span id="cb18-24"><a href="#cb18-24" tabindex="-1"></a><span class="fu">with</span>(BMC.id[[<span class="dv">66</span>]], <span class="fu">points</span>(age, bmc, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">cex =</span> <span class="fl">1.5</span>, <span class="at">col =</span> <span class="dv">8</span>))</span>
+<span id="cb18-25"><a href="#cb18-25" tabindex="-1"></a><span class="fu">lines</span>(age, sub.gps<span class="fl">.10</span>[, <span class="dv">41</span>], <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb18-26"><a href="#cb18-26" tabindex="-1"></a><span class="fu">lines</span>(age, sub.gps<span class="fl">.10</span>[, <span class="dv">66</span>], <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb18-27"><a href="#cb18-27" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;O-splines&quot;</span>)</span>
+<span id="cb18-28"><a href="#cb18-28" tabindex="-1"></a>x <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">MakeGrid</span>(domain.knots.gps<span class="fl">.10</span>, <span class="dv">21</span>)</span>
+<span id="cb18-29"><a href="#cb18-29" tabindex="-1"></a>B <span class="ot">&lt;-</span> splines<span class="sc">::</span><span class="fu">splineDesign</span>(knots.gps<span class="fl">.10</span>, x)</span>
+<span id="cb18-30"><a href="#cb18-30" tabindex="-1"></a>B[B <span class="sc">==</span> <span class="dv">0</span>] <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb18-31"><a href="#cb18-31" tabindex="-1"></a>Bshift <span class="ot">&lt;-</span> ylim[<span class="dv">1</span>] <span class="sc">+</span> (ylim[<span class="dv">1</span>] <span class="sc">*</span> <span class="fl">0.8</span> <span class="sc">+</span> ylim[<span class="dv">2</span>] <span class="sc">*</span> <span class="fl">0.2</span>) <span class="sc">*</span> B</span>
+<span id="cb18-32"><a href="#cb18-32" tabindex="-1"></a><span class="fu">matlines</span>(x, Bshift, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">lty =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="at">each =</span> <span class="dv">5</span>), <span class="at">col =</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">6</span>)</span>
+<span id="cb18-33"><a href="#cb18-33" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div>
+</div>
+<div id="fossil-shell-data" class="section level2">
+<h2>4.2 Fossil Shell Data</h2>
+<p>Consider the <code>smooth.spline</code> fit to the data as
+“truth”.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="do">## you may need to first install &quot;SemiPar&quot; from CRAN</span></span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="fu">data</span>(fossil, <span class="at">package =</span> <span class="st">&quot;SemiPar&quot;</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a><span class="do">## treat fossil data as (x, y) data</span></span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a>x <span class="ot">&lt;-</span> fossil<span class="sc">$</span>age</span>
+<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a>y <span class="ot">&lt;-</span> fossil<span class="sc">$</span>strontium.ratio</span>
+<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a>ind <span class="ot">&lt;-</span> <span class="fu">order</span>(x)</span>
+<span id="cb19-8"><a href="#cb19-8" tabindex="-1"></a>x <span class="ot">&lt;-</span> x[ind]</span>
+<span id="cb19-9"><a href="#cb19-9" tabindex="-1"></a>y <span class="ot">&lt;-</span> y[ind]</span>
+<span id="cb19-10"><a href="#cb19-10" tabindex="-1"></a></span>
+<span id="cb19-11"><a href="#cb19-11" tabindex="-1"></a><span class="do">## consider a cubic smoothing spline fit as g(x)</span></span>
+<span id="cb19-12"><a href="#cb19-12" tabindex="-1"></a>sm <span class="ot">&lt;-</span> <span class="fu">smooth.spline</span>(x, y)</span>
+<span id="cb19-13"><a href="#cb19-13" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="cf">function</span> (x) <span class="fu">predict</span>(sm, <span class="at">x =</span> x)<span class="sc">$</span>y</span></code></pre></div>
+<p>The following code produces Figure 12.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="do">## fit 4 types of penalized B-splines with 20 interior knots</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>fit20 <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">Fit4BS</span>(x, y, <span class="at">k =</span> <span class="dv">20</span>, <span class="at">select =</span> <span class="fu">c</span>(<span class="st">&quot;gps&quot;</span>, <span class="st">&quot;sps&quot;</span>))</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a><span class="do">## use the same knots as placed by smooth.spline()</span></span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>nk <span class="ot">&lt;-</span> <span class="fu">length</span>(sm<span class="sc">$</span>fit<span class="sc">$</span>knot) <span class="sc">-</span> <span class="dv">8</span></span>
+<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a>fit62 <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">Fit4BS</span>(x, y, <span class="at">k =</span> nk, <span class="at">select =</span> <span class="fu">c</span>(<span class="st">&quot;gps&quot;</span>, <span class="st">&quot;sps&quot;</span>))</span>
+<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a></span>
+<span id="cb20-8"><a href="#cb20-8" tabindex="-1"></a><span class="fu">pdf</span>(<span class="st">&quot;fig12.pdf&quot;</span>, <span class="at">width =</span> <span class="dv">9</span>, <span class="at">height =</span> <span class="dv">3</span>)</span>
+<span id="cb20-9"><a href="#cb20-9" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="fl">1.5</span>, <span class="fl">0.5</span>))</span>
+<span id="cb20-10"><a href="#cb20-10" tabindex="-1"></a><span class="fu">PlotXYFit</span>(fit20<span class="sc">$</span>gps, x, y, g)</span>
+<span id="cb20-11"><a href="#cb20-11" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;gps (20 interior knots)&quot;</span>)</span>
+<span id="cb20-12"><a href="#cb20-12" tabindex="-1"></a><span class="fu">PlotXYFit</span>(fit20<span class="sc">$</span>sps, x, y, g)</span>
+<span id="cb20-13"><a href="#cb20-13" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;sps (20 interior knots)&quot;</span>)</span>
+<span id="cb20-14"><a href="#cb20-14" tabindex="-1"></a><span class="fu">PlotXYFit</span>(fit62<span class="sc">$</span>gps, x, y, g)</span>
+<span id="cb20-15"><a href="#cb20-15" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;gps (62 interior knots)&quot;</span>)</span>
+<span id="cb20-16"><a href="#cb20-16" tabindex="-1"></a><span class="fu">dev.off</span>()</span>
+<span id="cb20-17"><a href="#cb20-17" tabindex="-1"></a></span>
+<span id="cb20-18"><a href="#cb20-18" tabindex="-1"></a><span class="do">## residual sum of squares</span></span>
+<span id="cb20-19"><a href="#cb20-19" tabindex="-1"></a><span class="fu">sum</span>(fit62<span class="sc">$</span>sps<span class="sc">$</span>residuals <span class="sc">^</span> <span class="dv">2</span>)</span>
+<span id="cb20-20"><a href="#cb20-20" tabindex="-1"></a><span class="fu">sum</span>(fit62<span class="sc">$</span>gps<span class="sc">$</span>residuals <span class="sc">^</span> <span class="dv">2</span>)</span>
+<span id="cb20-21"><a href="#cb20-21" tabindex="-1"></a><span class="fu">sum</span>((y <span class="sc">-</span> sm<span class="sc">$</span>y) <span class="sc">^</span> <span class="dv">2</span>)</span></code></pre></div>
+<p>The following code produces Figure 13.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="do">## extract leave-one-out GCV score for various k</span></span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">10</span>, <span class="dv">60</span>, <span class="at">by =</span> <span class="dv">2</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a>pse <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="fu">length</span>(k), <span class="dv">2</span>)</span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(k)) {</span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a>  fit.i <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">Fit4BS</span>(x, y, k[i], <span class="at">select =</span> <span class="fu">c</span>(<span class="st">&quot;gps&quot;</span>, <span class="st">&quot;sps&quot;</span>))</span>
+<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a>  pse[i, ] <span class="ot">&lt;-</span> <span class="fu">unlist</span>(<span class="fu">lapply</span>(fit.i, <span class="st">&quot;[[&quot;</span>, <span class="st">&quot;gcv.ubre.dev&quot;</span>))</span>
+<span id="cb21-7"><a href="#cb21-7" tabindex="-1"></a>}</span>
+<span id="cb21-8"><a href="#cb21-8" tabindex="-1"></a></span>
+<span id="cb21-9"><a href="#cb21-9" tabindex="-1"></a><span class="fu">pdf</span>(<span class="st">&quot;fig13.pdf&quot;</span>, <span class="at">width =</span> <span class="dv">6</span>, <span class="at">height =</span> <span class="dv">4</span>)</span>
+<span id="cb21-10"><a href="#cb21-10" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>))</span>
+<span id="cb21-11"><a href="#cb21-11" tabindex="-1"></a><span class="fu">matplot</span>(k, pse, <span class="at">type =</span> <span class="st">&quot;l&quot;</span>, <span class="at">lty =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">1</span>), <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="dv">1</span>, <span class="at">ann =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb21-12"><a href="#cb21-12" tabindex="-1"></a><span class="fu">mtext</span>(<span class="st">&quot;number of interior knots (k)&quot;</span>, <span class="at">side =</span> <span class="dv">1</span>, <span class="at">line =</span> <span class="dv">2</span>)</span>
+<span id="cb21-13"><a href="#cb21-13" tabindex="-1"></a><span class="fu">mtext</span>(<span class="st">&quot;CV score&quot;</span>, <span class="at">side =</span> <span class="dv">2</span>, <span class="at">line =</span> <span class="dv">2</span>)</span>
+<span id="cb21-14"><a href="#cb21-14" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div>
+<p>The following code produces Figure 14.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="do">## a zoom-in on [92, 106]</span></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a>ind <span class="ot">&lt;-</span> (x <span class="sc">&lt;</span> <span class="dv">106</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a>xx <span class="ot">&lt;-</span> x[ind]</span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a>yy <span class="ot">&lt;-</span> y[ind]</span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a></span>
+<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a><span class="fu">pdf</span>(<span class="st">&quot;fig14.pdf&quot;</span>, <span class="at">width =</span> <span class="dv">8</span>, <span class="at">height =</span> <span class="dv">3</span>)</span>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="fl">1.5</span>, <span class="fl">0.5</span>))</span>
+<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">10</span>, <span class="dv">13</span>, <span class="dv">16</span>)</span>
+<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>) {</span>
+<span id="cb22-10"><a href="#cb22-10" tabindex="-1"></a>  fit.i <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">Fit4BS</span>(x, y, k[i], <span class="at">select =</span> <span class="st">&quot;gps&quot;</span>)</span>
+<span id="cb22-11"><a href="#cb22-11" tabindex="-1"></a>  <span class="fu">PlotXYFit</span>(fit.i<span class="sc">$</span>gps, xx, yy, g)</span>
+<span id="cb22-12"><a href="#cb22-12" tabindex="-1"></a>  <span class="fu">title</span>(<span class="fu">sprintf</span>(<span class="st">&quot;k = %d&quot;</span>, k[i]), <span class="at">cex.main =</span> <span class="dv">2</span>)</span>
+<span id="cb22-13"><a href="#cb22-13" tabindex="-1"></a>}</span>
+<span id="cb22-14"><a href="#cb22-14" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div>
+<!--
+The following code demonstrates Yao and Lee (2008)'s idea to improve quantile knots.
+
+```{.r}
+## you may need to first install "SemiPar" from CRAN
+data(fossil, package = "SemiPar")
+
+## treat fossil data as (x, y) data
+x <- fossil$age
+y <- fossil$strontium.ratio
+
+## consider a cubic smoothing spline fit as g(x)
+sm <- smooth.spline(x, y)
+g <- function (x) predict(sm, x = x)$y
+
+## fit an initial general P-splines
+fit <- gps.mgcv::Fit4BS(x, y, k = 20, select = "gps")$gps
+Iknots <- fit$smooth[[1]]$interior.knots
+
+## find locations of local extrema
+xg <- seq(min(x), max(x), length = 201)
+yg <- unname(predict(fit, newdata = data.frame(x = xg)))
+plot(xg, yg)
+xp <- xg[which(diff(sign(diff(yg))) != 0) + 1]
+
+## refit general P-splines
+aug.Iknots <- sort(c(Iknots, xp))
+aug.k <- length(aug.Iknots)
+refit <- gps.mgcv::Fit4BS(x, y, k = aug.k, knots = aug.Iknots, select = "gps")$gps
+
+## we can see an improvement
+par(mfrow = c(1, 2), mar = c(2, 2, 1.5, 0.5))
+PlotXYFit(fit, x, y, g)
+title("initial gps fit")
+PlotXYFit(refit, x, y, g)
+title("gps refit")
+```
+-->
+</div>
+</div>
+<div id="appendix-spline-and-b-splines" class="section level1">
+<h1>Appendix: Spline and B-splines</h1>
+<p>The following code produces Figure 15.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">pdf</span>(<span class="st">&quot;fig15.pdf&quot;</span>, <span class="at">width =</span> <span class="dv">6</span>, <span class="at">height =</span> <span class="dv">4</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a>out <span class="ot">&lt;-</span> gps.mgcv<span class="sc">::</span><span class="fu">DemoSpl</span>(<span class="at">uniform =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div>
+<p>The following code computes coefficients for clamped B-splines.</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="do">## 8 equidistant points on the domain (because there are 8 B-splines)</span></span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">6</span>, <span class="at">length =</span> <span class="dv">8</span>)</span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a><span class="do">## full knot sequence for uniform B-splines</span></span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a>xt1 <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">2</span><span class="sc">:</span><span class="dv">9</span></span>
+<span id="cb24-5"><a href="#cb24-5" tabindex="-1"></a><span class="do">## full knot sequence for clamped B-splines</span></span>
+<span id="cb24-6"><a href="#cb24-6" tabindex="-1"></a>xt2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="dv">6</span>, <span class="dv">6</span>, <span class="dv">6</span>)</span>
+<span id="cb24-7"><a href="#cb24-7" tabindex="-1"></a><span class="do">## evaluate the spline using uniform B-splines</span></span>
+<span id="cb24-8"><a href="#cb24-8" tabindex="-1"></a>B1 <span class="ot">&lt;-</span> splines<span class="sc">::</span><span class="fu">splineDesign</span>(xt1, x)</span>
+<span id="cb24-9"><a href="#cb24-9" tabindex="-1"></a>y <span class="ot">&lt;-</span> B1 <span class="sc">%*%</span> out<span class="sc">$</span>bspl.coef</span>
+<span id="cb24-10"><a href="#cb24-10" tabindex="-1"></a><span class="do">## back solve coefficients of clamped B-splines</span></span>
+<span id="cb24-11"><a href="#cb24-11" tabindex="-1"></a>B2 <span class="ot">&lt;-</span> splines<span class="sc">::</span><span class="fu">splineDesign</span>(xt2, x)</span>
+<span id="cb24-12"><a href="#cb24-12" tabindex="-1"></a><span class="fu">solve</span>(B2, y)</span></code></pre></div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+
+</body>
+</html>
