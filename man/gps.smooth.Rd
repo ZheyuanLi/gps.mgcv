@@ -108,7 +108,7 @@ require(gps.mgcv)
 cyclic <- FALSE
 
 ## 250 data from a random cubic spline on [0, 1]
-spl <- RandomSpl(n = 250, degree = 3, periodic = cyclic, plot = FALSE)
+spl <- RandomSpl(n = 250, periodic = cyclic, plot = FALSE)
 ## noisy (x, y) observations
 x <- spl$x
 y <- rnorm(250, spl$y, sd = 0.2 * sd(spl$y))

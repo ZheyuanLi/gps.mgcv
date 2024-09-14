@@ -12,10 +12,10 @@ Fit 4 variants of penalized B-splines to noisy \eqn{(x, y)} data simulated from 
 }
 
 \usage{
-Fit4BS(x, y, k, knots = NULL, domain = NULL, periodic = FALSE,
+Fit4BS(x, y, k, m = 2, knots = NULL, domain = NULL, periodic = FALSE,
        select = c("os", "sps", "nps", "gps"))
 
-MSE4BS(x, g, k, knots = NULL, domain = NULL, periodic = FALSE,
+MSE4BS(x, g, k, m = 2, knots = NULL, domain = NULL, periodic = FALSE,
        n2s.ratio = 0.2, n.sim = 100, nc = 1,
        select = c("os", "sps", "nps", "gps"))
 }
@@ -24,6 +24,7 @@ MSE4BS(x, g, k, knots = NULL, domain = NULL, periodic = FALSE,
 \item{x, y}{\eqn{(x, y)} data.}
 \item{g}{the true generative function \eqn{g(x)} from which data are simulated.}
 \item{k}{number of interior knots to place. This gives \eqn{k + 4} ordinary cubic B-splines or \eqn{k + 1} periodic cubic B-splines.}
+\item{m}{penalty order. Can be 1, 2 or 3.}
 \item{knots}{a sequence of interior knots on which non-uniform B-splines are constructed for "os", "nps" and "gps" (see Details). Will be automatically placed at equal quantiles of \eqn{x}-values if not specified. If specified, must match \code{k}.}
 \item{domain}{a vector of two values giving domain interval \eqn{[a, b]}. Will use \code{min(x)} and \code{max(x)} if not specified.}
 \item{periodic}{TRUE to fit a periodic spline; FALSE to fit an ordinary spline.}
@@ -41,7 +42,7 @@ The 4 variants of penalized B-splines are:
 \item naive P-spline ("nps"): non-uniform B-splines + standard difference penalty;
 \item general P-spline ("gps"): non-uniform B-splines + general difference penalty.
 }
-They are constructed with cubic B-splines on \eqn{k} interior knots, penalized with a 2nd order derivative or difference penalty. By default, quantile knots are placed automatically for "os", "nps" and "gps". But this can be overridden by user-specified interior knots through argument \code{knots}.
+They are constructed with cubic B-splines on \eqn{k} interior knots, penalized with an order-\eqn{m} derivative or difference penalty. By default, quantile knots are placed automatically for "os", "nps" and "gps". But this can be overridden by user-specified interior knots through argument \code{knots}.
 }
 
 \value{
@@ -63,7 +64,7 @@ require(mgcv)
 require(gps.mgcv)
 
 ## a U-shaped curve
-g <- function (x) (1 / 8) * abs(x) ^ 3
+g <- function (x) abs(x) ^ 3 - 0.2 * x ^ 4
 
 ## number of data
 n <- 400

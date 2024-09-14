@@ -16,7 +16,7 @@ SimStudy(n, degree, periodic = FALSE, n2s.ratio = 0.2, n.sim = 100, nc = 1)
 
 \arguments{
 \item{n}{number of unevenly spaced \eqn{x}-values. This argument is passed to \code{\link{RandomSpl}}.}
-\item{degree}{polynomial degree of the spline. This argument is passed to \code{\link{RandomSpl}}.}
+\item{degree}{polynomial degree of the spline.}
 \item{periodic}{TRUE to generate a periodic spline; FALSE to generate an ordinary spline. This argument is passed to \code{\link{RandomSpl}}.}
 \item{n2s.ratio}{a noise-to-signal ratio that is used when simulating noisy \eqn{y}-values.}
 \item{n.sim}{number of simulations.}
