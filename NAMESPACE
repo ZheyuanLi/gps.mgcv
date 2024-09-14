@@ -1,14 +1,21 @@
+useDynLib(gps.mgcv, .registration = TRUE)
+
 export(smooth.construct.gps.smooth.spec, Predict.matrix.gps.smooth,
        Fit4BS, MSE4BS, RandomSpl, SimStudy,
-       synBMC, FitBMC, cvBMC)
+       synBMC, FitBMC, cvBMC,
+       MakeGrid, PlaceKnots, DemoSpl,
+       SparseD, DemoNull, SandBar)
 
+importFrom(methods, new)
 importFrom(splines, splineDesign)
-importFrom(gps, PlaceKnots, SparseD, SandBar)
 importFrom(Matrix, chol, crossprod)
-importFrom(stats, sd, quantile, rnorm, predict, as.formula)
-importFrom(graphics, plot.default, lines.default, points.default)
+importFrom(stats, sd, quantile, rnorm, qbeta, predict, as.formula, arima.sim)
+importFrom(graphics, plot.default, points.default, lines.default,
+           abline, matplot, matlines, par, segments, text.default, mtext, polygon, title)
+importFrom(grDevices, gray)
 importFrom(mgcv, s, smooth.construct, Predict.matrix, gam, gamm)
 importFrom(parallel, makeCluster, clusterApply, stopCluster)
 
 S3method(smooth.construct, gps.smooth.spec)
 S3method(Predict.matrix, gps.smooth)
+

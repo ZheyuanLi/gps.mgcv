@@ -1,6 +1,6 @@
 Package: gps.mgcv
-Version: 1.0
-Date: 2022-04-13
+Version: 1.3
+Date: 2024-09-15
 Title: General P-Splines for Package 'mgcv'
 Authors@R: c(person("Zheyuan", "Li", role = c("aut", "cre"),
                      email = "zheyuan.li@bath.edu",
@@ -14,7 +14,7 @@ Author: Zheyuan Li [aut, cre] (<https://orcid.org/0000-0002-7434-5947>),
     Ahmed Elhakeem [dtc] (<https://orcid.org/0000-0001-7637-6360>)
 Maintainer: Zheyuan Li <zheyuan.li@bath.edu>
 Depends: R (>= 4.0.0)
-Imports: gps (>= 1.1), mgcv (>= 1.8-40), stats, Matrix, splines, graphics, parallel
+Imports: mgcv (>= 1.8-40), stats, Matrix, methods, splines, graphics, grDevices, parallel
 Description: The package constructs and predicts the general P-splines of Li and Cao (2022)
     <arXiv:2201.06808> in mgcv by defining a new 'gps' smooth class
     (see ?gps.smooth). A general P-spline f(x) is specified as s(x, bs = 'gps', ...) in a formula
@@ -28,5 +28,5 @@ Description: The package constructs and predicts the general P-splines of Li and
     different penalized B-splines (see ?Fit4BS and ?SimStudy) and a case study of smoothing
     Bone Mineral Content longitudinal data (see ?BMC).
 License: GPL-3
-NeedsCompilation: no
+NeedsCompilation: yes
 URL: https://github.com/ZheyuanLi/gps.mgcv
